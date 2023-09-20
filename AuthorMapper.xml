@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.readiya.mapper.AuthorMapper">
+	<!-- 작가 등록 -->
+    <insert id="authorEnroll">
+    	insert into readiya_author(authorId, authorName, nationId, authorIntro)
+        values(seq_author.nextval, #{authorName}, #{nationId}, #{authorIntro})
+    </insert>
+    
+    <!-- 작가 관리 -->
+      <select id="authorGetList" resultType="com.readiya.domain.AuthorVO">
+      
+      <![CDATA[
+          select *
+          from (
+              select /*+ index_desc(readiya_author SYS_C007061) */ 
+                  rownum rn, authorid, authorname, nationid, regdate, updatedate
+            from readiya_author 
+            where
+             
+      ]]>         
+            <if test="keyword != null">
+                authorname like '%'||#{keyword}||'%' and
+            </if>
+            
+      <![CDATA[        
+             rownum <= #{pageNum}*#{amount})
+        	where rn > (#{pageNum}-1)*#{amount}
+      ]]>
+      
+      </select>
+      
+      <!-- 작가 수 -->
+      <select id="authorGetTotal" resultType="int">
+			select count(*) from readiya_author
+			
+          <if test="keyword != null">
+          		where authorName like '%' || #{keyword} || '%'
+          </if>
+      </select>
+      
+      <!-- 작가 상세 페이지 -->
+  	  <select id="authorGetDetail" resultMap="mapping_AuthorVO">
+			select * 
+			from readiya_author 
+			where authorId = #{authorId}
+  	  </select>
+  	  
+  	  <resultMap type="com.readiya.domain.AuthorVO" id="mapping_AuthorVO">
+		<result property="authorId" column="AUTHORID" />
+		<result property="authorName" column="AUTHORNAME" />
+		<result property="nationId" column="NATIONID" />
+		<result property="authorIntro" column="AUTHORINTRO" />
+		<result property="regDate" column="REGDATE" />
+		<result property="updateDate" column="UPDATEDATE" />
+	  </resultMap>
+  	  
+  	  <!-- 작가 수정 -->
+  	  <update id="authorModify">
+			update readiya_author 
+			set authorName = #{authorName}, nationId = #{nationId, jdbcType=VARCHAR}, authorIntro = #{authorIntro},
+			    updateDate = sysdate
+			where authorId = #{authorId}
+  	  </update>
+  	  
+  	  <!-- 작가 삭제 -->
+  	  <delete id="authorDelete">
+  		delete 
+  		from readiya_author 
+  		where authorId = #{authorId}
+  	  </delete>
+</mapper>

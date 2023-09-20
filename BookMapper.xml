@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.readiya.mapper.BookMapper">
+	<!-- criteria(검색조건) -->
+	<sql id="criteria">
+		<if test="keyword != null">
+			bookName like '%' || #{keyword} || '%' and
+		</if>
+	</sql>
+
+	<!-- 상품 검색 -->
+	<select id="getGoodsList" resultType="com.readiya.domain.BookVO">
+	
+		<![CDATA[
+		    select * from(
+		        select /*+INDEX_DESC(readiya_book SYS_C007068)*/ rownum as rn, bookId, bookName,
+		            (select authorName from readiya_author where readiya_book.authorId = readiya_author.authorId) authorName, authorId,
+		            (select cateName from readiya_bcate where readiya_book.cateCode = readiya_bcate.cateCode) cateName, cateCode, publisher, publeYear, bookPrice  
+		        from readiya_book
+		        where 
+	    ]]>
+	    
+	    <include refid="criteria"></include>
+	    
+	    <![CDATA[
+	    		        
+		    rownum <= #{pageNum} * #{amount})
+	        where rn > (#{pageNum} -1) * #{amount}
+		]]>	  		
+	
+	</select>
+	
+</mapper>
